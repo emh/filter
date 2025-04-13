@@ -59,7 +59,28 @@ const pixelize = (pixels, size) => {
     }
 
     return blocks;
-}
+};
+
+const quantize = (blocks, palette) => blocks.map(row =>
+    row.map(({ r, g, b }) => {
+        let minDist = Infinity;
+        let closest = palette[0];
+
+        for (const color of palette) {
+            const dr = r - color.r;
+            const dg = g - color.g;
+            const db = b - color.b;
+            const dist = dr * dr + dg * dg + db * db;
+
+            if (dist < minDist) {
+                minDist = dist;
+                closest = color;
+            }
+        }
+
+        return closest;
+    })
+);
 
 const squarePixel = (ctx, { r, g, b }, size) => {
     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
@@ -161,10 +182,15 @@ const startVideo = (video) =>
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
             video.srcObject = stream;
-            video.play();
+            return new Promise(resolve => {
+                video.onloadedmetadata = () => {
+                    video.play();
+                    resolve();
+                };
+            });
         });
 
-const startPollingVideo = (video) => {
+        const startPollingVideo = (video) => {
     startVideo(video);
 
     setInterval(() => {
@@ -178,6 +204,25 @@ const startPollingVideo = (video) => {
         }
     }, 1000);    
 }        
+
+const popArtPalette = [
+    { r: 255, g: 0,   b: 0 },   // Red
+    { r: 0,   g: 0,   b: 255 }, // Blue
+    { r: 0,   g: 255, b: 0 },   // Green
+    { r: 255, g: 255, b: 0 },   // Yellow
+    { r: 255, g: 165, b: 0 },   // Orange
+    { r: 128, g: 0,   b: 128 }, // Purple
+    { r: 255, g: 192, b: 203 }, // Pink
+    { r: 255, g: 255, b: 255 }, // White
+    { r: 0,   g: 0,   b: 0 },   // Black
+    { r: 128, g: 128, b: 128 }, // Gray
+    { r: 210, g: 180, b: 140 }, // Tan (light skin tone)
+    { r: 160, g: 82,  b: 45 },  // Brown (medium skin tone)
+    { r: 105, g: 57,  b: 30 },  // Dark brown (darker skin tone)
+    { r: 0,   g: 255, b: 255 }, // Cyan
+    { r: 255, g: 0,   b: 255 }, // Magenta
+    { r: 255, g: 240, b: 245 }  // Linen (light pinkish-neutral)
+];
 
 const init = () => {
     const canvas = document.querySelector('canvas');
@@ -198,23 +243,27 @@ const init = () => {
     return {
         canvas, 
         video,
-        pixelSize: 8
+        pixelSize: 16,
+        palette: popArtPalette
     };
 }
 
 const run = () => {
-    const { canvas, video, pixelSize } = init();
+    const { canvas, video, pixelSize, palette } = init();
 
     const loop = () => {
         requestAnimationFrame(loop);
 
         const ctx = canvas.getContext('2d');
 
-        const pixels = getPixelData(video);
-        const blocks = pixelize(pixels, pixelSize);
-        const frame = renderBlocks(blocks, pixelSize, circlePixel);
-
-        if (frame) renderFrame(ctx, frame);
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            const pixels = getPixelData(video);
+            const blocks = pixelize(pixels, pixelSize);
+            //const quantized = quantize(blocks, palette);
+            const frame = renderBlocks(blocks, pixelSize, squarePixel);
+    
+            renderFrame(ctx, frame);
+        }
     }
 
     requestAnimationFrame(loop);
