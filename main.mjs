@@ -1,3 +1,5 @@
+import { circlePixel, pixelize, renderBlocks, squarePixel } from "./pixelizer.mjs";
+
 const getPixelData = (video) => {
     const vw = video.videoWidth;
     const vh = video.videoHeight;
@@ -27,126 +29,6 @@ const getPixelData = (video) => {
     }
 
     return pixels;
-};
-
-const pixelize = (pixels, size) => {
-    const blocks = Array.from({ length: Math.floor(pixels.length / size) }, () => Array(Math.floor(pixels[0].length / size)));
-
-    for (let y = 0; y < blocks.length; y++) {
-        for(let x = 0; x < blocks[0].length; x++) {
-            let rt = 0, gt = 0, bt = 0, count = 0;
-    
-            for (let dy = 0; dy < size; dy++) {
-                for (let dx = 0; dx < size; dx++) {
-                    const px = (x * size) + dx;
-                    const py = (y * size) + dy;
-
-                    if (py >= pixels.length || px >= pixels[0].length) continue;
-
-                    const { r, g, b } = pixels[py][px];
-
-                    rt += r;
-                    gt += g;
-                    bt += b;
-                    count++;
-                }
-            }
-
-            blocks[y][x] = { r: rt / count, g: gt / count, b: bt / count };
-        }
-    }
-
-    return blocks;
-};
-
-const quantize = (blocks, palette) => blocks.map(row =>
-    row.map(({ r, g, b }) => {
-        let minDist = Infinity;
-        let closest = palette[0];
-
-        for (const color of palette) {
-            const dr = r - color.r;
-            const dg = g - color.g;
-            const db = b - color.b;
-            const dist = dr * dr + dg * dg + db * db;
-
-            if (dist < minDist) {
-                minDist = dist;
-                closest = color;
-            }
-        }
-
-        return closest;
-    })
-);
-
-const squarePixel = (ctx, { r, g, b }, size) => {
-    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-    ctx.fillRect(0, 0, size, size);
-};
-
-const circlePixel = (ctx, { r, g, b }, size) => {
-    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-    const radius = (brightness / 255) * (size / 2);
-
-    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
-    ctx.fill();
-};
-
-const renderBlocks = (blocks, size, renderer) => {
-    const canvas = document.createElement('canvas');
-
-    if (blocks.length === 0 || blocks[0].length === 0) return canvas;
-
-    canvas.width = blocks[0].length * size;
-    canvas.height = blocks.length * size;
-
-    const ctx = canvas.getContext('2d');
-
-    for (let y = 0; y < blocks.length; y++) {
-        for(let x = 0; x < blocks[0].length; x++) {
-            const block = blocks[y][x];
-
-            ctx.save();
-            ctx.translate(x * size, y * size);
-            renderer(ctx, block, size);
-            ctx.restore();
-        }
-    }
-
-    return canvas;
-};
-
-const renderCircles = (blocks, size) => {
-    const canvas = document.createElement('canvas');
-
-    if (blocks.length === 0 || blocks[0].length === 0) return canvas;
-
-    canvas.width = blocks[0].length * size;
-    canvas.height = blocks.length * size;
-
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, blocks[0].length * size, blocks.length * size);
-
-    for (let y = 0; y < blocks.length; y++) {
-        for(let x = 0; x < blocks[0].length; x++) {
-            const block = blocks[y][x];
-            const { r, g, b } = block;
-            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-            const radius = (brightness / 255) * (size / 2);
-
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            ctx.beginPath();
-            ctx.arc(x * size + size / 2, y * size + size / 2, radius, 0, Math.PI*2);
-            ctx.fill();
-        }
-    }
-
-    return canvas;
 };
 
 const renderFrame = (ctx, frame) => {
@@ -207,25 +89,6 @@ const startPollingVideo = (video) => {
     }, 1000);    
 }        
 
-const popArtPalette = [
-    { r: 255, g: 0,   b: 0 },   // Red
-    { r: 0,   g: 0,   b: 255 }, // Blue
-    { r: 0,   g: 255, b: 0 },   // Green
-    { r: 255, g: 255, b: 0 },   // Yellow
-    { r: 255, g: 165, b: 0 },   // Orange
-    { r: 128, g: 0,   b: 128 }, // Purple
-    { r: 255, g: 192, b: 203 }, // Pink
-    { r: 255, g: 255, b: 255 }, // White
-    { r: 0,   g: 0,   b: 0 },   // Black
-    { r: 128, g: 128, b: 128 }, // Gray
-    { r: 210, g: 180, b: 140 }, // Tan (light skin tone)
-    { r: 160, g: 82,  b: 45 },  // Brown (medium skin tone)
-    { r: 105, g: 57,  b: 30 },  // Dark brown (darker skin tone)
-    { r: 0,   g: 255, b: 255 }, // Cyan
-    { r: 255, g: 0,   b: 255 }, // Magenta
-    { r: 255, g: 240, b: 245 }  // Linen (light pinkish-neutral)
-];
-
 const SQUARE = 1;
 const CIRCLE = 2;
 
@@ -244,8 +107,7 @@ const init = () => {
         canvas, 
         video,
         mode: 1,
-        pixelSize: 8,
-        palette: popArtPalette
+        pixelSize: 8
     };
 
     document.getElementById('square').addEventListener('click', () => {
