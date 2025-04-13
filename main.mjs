@@ -110,13 +110,11 @@ const init = () => {
         pixelSize: 8
     };
 
-    document.getElementById('square').addEventListener('click', () => {
-        state.mode = SQUARE;
-    }); 
-
-    document.getElementById('circle').addEventListener('click', () => {
-        state.mode = CIRCLE;
-    }); 
+    document.querySelectorAll('#controls > button').forEach(
+        (button) => button.addEventListener('click', (e) => {
+            state.mode = Number(e.target.innerHTML);
+        })
+    );
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
