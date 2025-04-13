@@ -128,6 +128,11 @@ const run = () => {
     const state = init();
     const { canvas, video } = state;
 
+    const filters = {
+        [SQUARE]: (pixels) => renderBlocks(pixelize(pixels, state.pixelSize), state.pixelSize, squarePixel),
+        [CIRCLE]: (pixels) => renderBlocks(pixelize(pixels, state.pixelSize), state.pixelSize, circlePixel),
+    };
+        
     const loop = () => {
         requestAnimationFrame(loop);
 
@@ -135,8 +140,7 @@ const run = () => {
 
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
             const pixels = getPixelData(video);
-            const blocks = pixelize(pixels, state.pixelSize);
-            const frame = renderBlocks(blocks, state.pixelSize, state.mode === SQUARE ? squarePixel : circlePixel);
+            const frame = filters[state.mode](pixels);
 
             renderFrame(ctx, frame);
         }
