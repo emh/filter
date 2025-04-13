@@ -52,9 +52,7 @@ const pixelize = (pixels, size) => {
                 }
             }
 
-            rt /= count; gt /= count; bt /= count;
-
-            blocks[y][x] = { r: rt, g: gt, b: bt };
+            blocks[y][x] = { r: rt / count, g: gt / count, b: bt / count };
         }
     }
 
@@ -228,6 +226,9 @@ const popArtPalette = [
     { r: 255, g: 240, b: 245 }  // Linen (light pinkish-neutral)
 ];
 
+const SQUARE = 1;
+const CIRCLE = 2;
+
 const init = () => {
     const canvas = document.querySelector('canvas');
     
@@ -239,21 +240,33 @@ const init = () => {
     video.autoplay = true;
     video.playsInline = true;
 
+    const state = {
+        canvas, 
+        video,
+        mode: 1,
+        pixelSize: 8,
+        palette: popArtPalette
+    };
+
+    document.getElementById('square').addEventListener('click', () => {
+        state.mode = SQUARE;
+    }); 
+
+    document.getElementById('circle').addEventListener('click', () => {
+        state.mode = CIRCLE;
+    }); 
+
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;     
     });
-    
-    return {
-        canvas, 
-        video,
-        pixelSize: 16,
-        palette: popArtPalette
-    };
+
+    return state;
 }
 
 const run = () => {
-    const { canvas, video, pixelSize, palette } = init();
+    const state = init();
+    const { canvas, video } = state;
 
     const loop = () => {
         requestAnimationFrame(loop);
@@ -262,10 +275,9 @@ const run = () => {
 
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
             const pixels = getPixelData(video);
-            const blocks = pixelize(pixels, pixelSize);
-            //const quantized = quantize(blocks, palette);
-            const frame = renderBlocks(blocks, pixelSize, squarePixel);
-    
+            const blocks = pixelize(pixels, state.pixelSize);
+            const frame = renderBlocks(blocks, state.pixelSize, state.mode === SQUARE ? squarePixel : circlePixel);
+
             renderFrame(ctx, frame);
         }
     }
