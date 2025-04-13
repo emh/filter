@@ -178,19 +178,23 @@ const renderFrame = (ctx, frame) => {
     ctx.restore();
 };
 
-const startVideo = (video) =>
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
+const startVideo = (video) => {
+    navigator.mediaDevices.getUserMedia({ video: true }).then(
+        (stream) => {
             video.srcObject = stream;
+
             return new Promise(resolve => {
                 video.onloadedmetadata = () => {
                     video.play();
                     resolve();
                 };
             });
-        });
+        }, 
+        (e) => console.warn('Error starting video - will retry.', e)
+    );
+};
 
-        const startPollingVideo = (video) => {
+const startPollingVideo = (video) => {
     startVideo(video);
 
     setInterval(() => {
