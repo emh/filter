@@ -3,7 +3,7 @@ const clamp = (a, b, c) => Math.max(a, Math.min(c, b));
 const getSeedPoints = (pixels) => {
     const startingSize = 128;
     const minSize = 8;
-    const threshold = 80 ** 2;
+    const threshold = 50 ** 2;
     const height = pixels.length;
     const width = pixels[0].length;
     const seeds = [];
@@ -85,7 +85,8 @@ const clipPoly = (poly, p, q) => {
             if (ip) newPoly.push(ip);
         } else if (!currInside && nextInside) {
             const ip = intersectBisector(curr, next, p, q);
-            if (ip) (newPoly.push(ip), newPoly.push(next));
+            if (ip) newPoly.push(ip);            
+            newPoly.push(next);
         }
     }
 
