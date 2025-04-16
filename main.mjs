@@ -135,9 +135,17 @@ const run = () => {
         [CIRCLE]: (pixels) => circle(pixels, state.pixelSize),
         [VORONOI]: voronoi
     };
-        
-    const loop = () => {
-        requestAnimationFrame(loop);
+
+    let lastTs = null;
+    let fps = 0;
+    let foo = 0;
+
+    const loop = (ts) => {
+        if (foo++ < 5) requestAnimationFrame(loop);
+
+        if (lastTs) fps = Math.round(1000 / (ts - lastTs));
+
+        lastTs = ts;
 
         const ctx = canvas.getContext('2d');
 

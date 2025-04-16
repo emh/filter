@@ -1,9 +1,9 @@
 const clamp = (a, b, c) => Math.max(a, Math.min(c, b));
 
 const getSeedPoints = (pixels) => {
-    const startingSize = 256;
+    const startingSize = 128;
     const minSize = 8;
-    const threshold = 80;
+    const threshold = 80 ** 2;
     const height = pixels.length;
     const width = pixels[0].length;
     const seeds = [];
@@ -21,10 +21,10 @@ const getSeedPoints = (pixels) => {
     };
 
     const isUniform = (sample) => {
-        const dist = (a, b) => Math.sqrt((b.r - a.r) ** 2 + (b.g - a.g) ** 2 + (b.b - a.b) ** 2);
+        const dist = (a, b) => (b.r - a.r) ** 2 + (b.g - a.g) ** 2 + (b.b - a.b) ** 2;
 
         for (let a = 0; a < sample.length; a++) {
-            for (let b = 0; b < sample.length; b++) {
+            for (let b = a; b < sample.length; b++) {
                 if (a === b) continue;
                 if (dist(sample[a], sample[b]) > threshold) return false;
             }    
@@ -153,7 +153,6 @@ const renderCells = (cells, width, height) => {
 
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
-        console.log(cell);
         
         if (!cell.points.length) continue;
 
