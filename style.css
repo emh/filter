@@ -36,3 +36,14 @@ canvas {
         width: 50px;
     }
 }
+
+#controls button#share {
+    margin-left: auto;
+}
+
+button > svg {
+    height: 32px;
+    width: 32px;
+    fill: white;
+    pointer-events: none;
+}
