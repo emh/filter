@@ -1,4 +1,4 @@
-export const pixelize = (pixels, size) => {
+const pixelize = (pixels, size) => {
     const blocks = Array.from({ length: Math.floor(pixels.length / size) }, () => Array(Math.floor(pixels[0].length / size)));
 
     for (let y = 0; y < blocks.length; y++) {
@@ -28,12 +28,12 @@ export const pixelize = (pixels, size) => {
     return blocks;
 };
 
-export const squarePixel = (ctx, { r, g, b }, size) => {
+const squarePixel = (ctx, { r, g, b }, size) => {
     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     ctx.fillRect(0, 0, size, size);
 };
 
-export const circlePixel = (ctx, { r, g, b }, size) => {
+const circlePixel = (ctx, { r, g, b }, size) => {
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     const radius = (brightness / 255) * (size / 2);
 
@@ -43,7 +43,7 @@ export const circlePixel = (ctx, { r, g, b }, size) => {
     ctx.fill();
 };
 
-export const renderBlocks = (blocks, size, renderer) => {
+const renderBlocks = (blocks, size, renderer) => {
     const canvas = document.createElement('canvas');
 
     if (blocks.length === 0 || blocks[0].length === 0) return canvas;
@@ -66,3 +66,7 @@ export const renderBlocks = (blocks, size, renderer) => {
 
     return canvas;
 };
+
+export const square = (pixels, pixelSize) => renderBlocks(pixelize(pixels, pixelSize), pixelSize, squarePixel)
+
+export const circle = (pixels, pixelSize) => renderBlocks(pixelize(pixels, pixelSize), pixelSize, circlePixel)

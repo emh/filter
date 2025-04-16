@@ -1,4 +1,5 @@
-import { circlePixel, pixelize, renderBlocks, squarePixel } from "./pixelizer.mjs";
+import { square, circle } from "./pixelizer.mjs";
+import { voronoi } from "./voronoi.mjs";
 
 const getPixelData = (video) => {
     const vw = video.videoWidth;
@@ -91,6 +92,7 @@ const startPollingVideo = (video) => {
 
 const SQUARE = 1;
 const CIRCLE = 2;
+const VORONOI = 3;
 
 const init = () => {
     const canvas = document.querySelector('canvas');
@@ -106,7 +108,7 @@ const init = () => {
     const state = {
         canvas, 
         video,
-        mode: 1,
+        mode: VORONOI,
         pixelSize: 8
     };
 
@@ -123,14 +125,15 @@ const init = () => {
 
     return state;
 }
-
+    
 const run = () => {
     const state = init();
     const { canvas, video } = state;
 
     const filters = {
-        [SQUARE]: (pixels) => renderBlocks(pixelize(pixels, state.pixelSize), state.pixelSize, squarePixel),
-        [CIRCLE]: (pixels) => renderBlocks(pixelize(pixels, state.pixelSize), state.pixelSize, circlePixel),
+        [SQUARE]: (pixels) => square(pixels, state.pixelSize),
+        [CIRCLE]: (pixels) => circle(pixels, state.pixelSize),
+        [VORONOI]: voronoi
     };
         
     const loop = () => {
@@ -142,7 +145,7 @@ const run = () => {
             const pixels = getPixelData(video);
             const frame = filters[state.mode](pixels);
 
-            renderFrame(ctx, frame);
+            if (frame) renderFrame(ctx, frame);
         }
     }
 
