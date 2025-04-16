@@ -87,12 +87,29 @@ const startPollingVideo = (video) => {
         if (isDead) {
             startVideo(video);
         }
-    }, 1000);    
-}        
+    }, 1000);
+};
 
-const SQUARE = 1;
-const CIRCLE = 2;
-const VORONOI = 3;
+const share = (canvas) => {
+    canvas.toBlob((blob) => {
+        if (navigator.share && blob) {
+            const file = new File([blob], 'filter-selfie.png', { type: blob.type });
+            const shareData = {
+                files: [file]
+            };
+            navigator.share(shareData);
+        } else {
+            console.warn('Web Share API not supported or blob unavailable');
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+    }, 'image/png');
+};
+
+const SQUARE = 'square';
+const CIRCLE = 'circle';
+const VORONOI = 'voronoi';
+const SHARE = 'share';
 
 const init = () => {
     const canvas = document.querySelector('canvas');
@@ -114,7 +131,15 @@ const init = () => {
 
     document.querySelectorAll('#controls > button').forEach(
         (button) => button.addEventListener('click', (e) => {
-            state.mode = Number(e.target.innerHTML);
+            const id = e.target.id;
+
+            switch (id) {
+                case SHARE:
+                    share(state.canvas);
+                    break;
+                default:
+                    state.mode = id;
+            }
         })
     );
 
