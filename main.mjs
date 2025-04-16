@@ -108,7 +108,7 @@ const init = () => {
     const state = {
         canvas, 
         video,
-        mode: VORONOI,
+        mode: SQUARE,
         pixelSize: 8
     };
 
