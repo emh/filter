@@ -59,8 +59,8 @@ const renderFrame = (ctx, frame) => {
     ctx.restore();
 };
 
-const startVideo = (video) => {
-    navigator.mediaDevices.getUserMedia({ video: true }).then(
+const startVideo = (video, useRear) => {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: useRear ? 'environment' : 'user' } }).then(
         (stream) => {
             video.srcObject = stream;
 
@@ -75,8 +75,19 @@ const startVideo = (video) => {
     );
 };
 
-const startPollingVideo = (video) => {
-    startVideo(video);
+const stopVideo = (video) => {
+    const stream = video.srcObject;
+
+    if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+    }
+};
+
+const startPollingVideo = (video, useRear) => {
+    stopVideo(video);
+    startVideo(video, useRear);
 
     setInterval(() => {
         const stream = video.srcObject;
@@ -85,7 +96,7 @@ const startPollingVideo = (video) => {
             || stream.getVideoTracks().some(track => track.readyState === 'ended');
     
         if (isDead) {
-            startVideo(video);
+            startVideo(video, useRear);
         }
     }, 1000);
 };
@@ -110,6 +121,7 @@ const SQUARE = 'square';
 const CIRCLE = 'circle';
 const VORONOI = 'voronoi';
 const SHARE = 'share';
+const SWITCH = 'switch';
 
 const init = () => {
     const canvas = document.querySelector('canvas');
@@ -126,16 +138,21 @@ const init = () => {
         canvas, 
         video,
         mode: SQUARE,
-        pixelSize: 8
+        pixelSize: 8,
+        useRear: false
     };
 
-    document.querySelectorAll('#controls > button').forEach(
+    document.querySelectorAll('#controls button').forEach(
         (button) => button.addEventListener('click', (e) => {
             const id = e.target.id;
 
             switch (id) {
                 case SHARE:
                     share(state.canvas);
+                    break;
+                case SWITCH:
+                    state.useRear = !state.useRear;
+                    startPollingVideo(state.video, state.useRear);
                     break;
                 default:
                     state.mode = id;

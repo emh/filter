@@ -26,6 +26,7 @@ canvas {
     color: white;
 
     button {
+        cursor: pointer;
         border: solid 1px white;
         border-radius: 5px;
         color: white;
@@ -37,7 +38,7 @@ canvas {
     }
 }
 
-#controls button#share {
+#controls .right {
     margin-left: auto;
 }
 
