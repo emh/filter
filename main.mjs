@@ -54,8 +54,12 @@ const renderFrame = (ctx, frame, flip) => {
     }
 
     ctx.save();
-    ctx.scale(flip ? -1 : 1, 1);
-    ctx.drawImage(frame, sx, sy, sw, sh, -canvas.width, 0, canvas.width, canvas.height);
+    if (flip) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(frame, sx, sy, sw, sh, -canvas.width, 0, canvas.width, canvas.height);
+    } else {
+        ctx.drawImage(frame, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    }
     ctx.restore();
 };
 
@@ -122,6 +126,7 @@ const CIRCLE = 'circle';
 const VORONOI = 'voronoi';
 const SHARE = 'share';
 const SWITCH = 'switch';
+const PAUSE = 'pause';
 
 const init = () => {
     const canvas = document.querySelector('canvas');
@@ -139,7 +144,8 @@ const init = () => {
         video,
         mode: SQUARE,
         pixelSize: 8,
-        useRear: false
+        useRear: false,
+        paused: false
     };
 
     document.querySelectorAll('#controls button').forEach(
@@ -153,6 +159,9 @@ const init = () => {
                 case SWITCH:
                     state.useRear = !state.useRear;
                     startPollingVideo(state.video, state.useRear);
+                    break;
+                case PAUSE:
+                    state.paused = !state.paused;
                     break;
                 default:
                     state.mode = id;
@@ -170,7 +179,7 @@ const init = () => {
 
 const run = () => {
     const state = init();
-    const { canvas, video, useRear } = state;
+    const { canvas, video } = state;
 
     const filters = {
         [SQUARE]: (pixels) => square(pixels, state.pixelSize),
@@ -194,7 +203,7 @@ const run = () => {
             const pixels = getPixelData(video);
             const frame = filters[state.mode](pixels);
 
-            if (frame) renderFrame(ctx, frame, !useRear);
+            if (frame && !state.paused) renderFrame(ctx, frame, !state.useRear);
         }
     }
 
