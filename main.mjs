@@ -5,7 +5,7 @@ const getPixelData = (video) => {
     const vw = video.videoWidth;
     const vh = video.videoHeight;
 
-    if(!vw || !vh) return [];
+    if (!vw || !vh) return [];
 
     const oc = document.createElement('canvas');
     oc.width = vw;
@@ -24,7 +24,7 @@ const getPixelData = (video) => {
         const n = i >> 2;
         const y = Math.floor(n / vw);
         const x = n % vw;
-        const [r, g, b] = data.slice(i, i+3); // rgba but ignore the alpha
+        const [r, g, b] = data.slice(i, i + 3); // rgba but ignore the alpha
 
         pixels[y][x] = { r, g, b };
     }
@@ -70,7 +70,7 @@ const startVideo = (video, useRear) => {
                     resolve();
                 };
             });
-        }, 
+        },
         (e) => console.warn('Error starting video - will retry.', e)
     );
 };
@@ -94,7 +94,7 @@ const startPollingVideo = (video, useRear) => {
         const isDead = !stream
             || !stream.active
             || stream.getVideoTracks().some(track => track.readyState === 'ended');
-    
+
         if (isDead) {
             startVideo(video, useRear);
         }
@@ -123,24 +123,30 @@ const VORONOI = 'voronoi';
 const SHARE = 'share';
 const SWITCH = 'switch';
 
-const init = () => {
+const init = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === 'videoinput');
+
     const canvas = document.querySelector('canvas');
-    
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
+
     const video = document.createElement('video');
-    
+
     video.autoplay = true;
     video.playsInline = true;
 
     const state = {
-        canvas, 
+        canvas,
         video,
         mode: SQUARE,
         pixelSize: 8,
+        hasRear: cams.length > 1,
         useRear: false
     };
+
+    document.querySelector('#switch').style.display = state.hasRear ? 'inline-block' : 'none';
 
     document.querySelectorAll('#controls button').forEach(
         (button) => button.addEventListener('click', (e) => {
@@ -162,14 +168,14 @@ const init = () => {
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;     
+        canvas.height = window.innerHeight;
     });
 
     return state;
 }
-    
-const run = () => {
-    const state = init();
+
+const run = async () => {
+    const state = await init();
     const { canvas, video, useRear } = state;
 
     const filters = {
