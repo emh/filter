@@ -32,7 +32,7 @@ const getPixelData = (video) => {
     return pixels;
 };
 
-const renderFrame = (ctx, frame) => {
+const renderFrame = (ctx, frame, flip) => {
     const canvas = ctx.canvas;
 
     if (!canvas) return;
@@ -54,7 +54,7 @@ const renderFrame = (ctx, frame) => {
     }
 
     ctx.save();
-    ctx.scale(-1, 1);
+    ctx.scale(flip ? -1 : 1, 1);
     ctx.drawImage(frame, sx, sy, sw, sh, -canvas.width, 0, canvas.width, canvas.height);
     ctx.restore();
 };
@@ -170,7 +170,7 @@ const init = () => {
     
 const run = () => {
     const state = init();
-    const { canvas, video } = state;
+    const { canvas, video, useRear } = state;
 
     const filters = {
         [SQUARE]: (pixels) => square(pixels, state.pixelSize),
@@ -194,7 +194,7 @@ const run = () => {
             const pixels = getPixelData(video);
             const frame = filters[state.mode](pixels);
 
-            if (frame) renderFrame(ctx, frame);
+            if (frame) renderFrame(ctx, frame, !useRear);
         }
     }
 
