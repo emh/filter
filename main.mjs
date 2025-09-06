@@ -123,10 +123,7 @@ const VORONOI = 'voronoi';
 const SHARE = 'share';
 const SWITCH = 'switch';
 
-const init = async () => {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d => d.kind === 'videoinput');
-
+const init = () => {
     const canvas = document.querySelector('canvas');
 
     canvas.width = window.innerWidth;
@@ -142,11 +139,8 @@ const init = async () => {
         video,
         mode: SQUARE,
         pixelSize: 8,
-        hasRear: cams.length > 1,
         useRear: false
     };
-
-    document.querySelector('#switch').style.display = state.hasRear ? 'inline-block' : 'none';
 
     document.querySelectorAll('#controls button').forEach(
         (button) => button.addEventListener('click', (e) => {
@@ -174,8 +168,8 @@ const init = async () => {
     return state;
 }
 
-const run = async () => {
-    const state = await init();
+const run = () => {
+    const state = init();
     const { canvas, video, useRear } = state;
 
     const filters = {
